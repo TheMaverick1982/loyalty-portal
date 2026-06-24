@@ -1,11 +1,11 @@
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Shield, CheckCircle2, XCircle, Clock, Trash2, Power } from 'lucide-react';
+import { User, Shield, CheckCircle2, XCircle, Clock, Trash2, Power, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Admin() {
-  const { users, autoApprove, toggleAutoApprove, updateUserStatus, deleteUser, user: currentUser } = useAuth();
+  const { users, autoApprove, toggleAutoApprove, updateUserStatus, updateUserRole, deleteUser, user: currentUser } = useAuth();
 
   const handleStatusChange = (userId: string, status: 'approved' | 'revoked') => {
     updateUserStatus(userId, status);
@@ -124,6 +124,25 @@ export default function Admin() {
                               >
                                 <Power className="w-3.5 h-3.5" />
                                 Revoke
+                              </button>
+                            )}
+                            {user.role === 'employee' ? (
+                              <button
+                                onClick={() => updateUserRole(user.id, 'admin')}
+                                className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/20 h-8 px-3 gap-1.5"
+                                title="Promote to Manager"
+                              >
+                                <Star className="w-3.5 h-3.5" />
+                                Promote
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => updateUserRole(user.id, 'employee')}
+                                className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-muted text-muted-foreground hover:text-foreground h-8 px-3 gap-1.5"
+                                title="Demote to Employee"
+                              >
+                                <Shield className="w-3.5 h-3.5" />
+                                Demote
                               </button>
                             )}
                             <button

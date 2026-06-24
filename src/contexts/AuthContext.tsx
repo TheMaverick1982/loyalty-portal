@@ -23,6 +23,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   toggleAutoApprove: () => Promise<void>;
   updateUserStatus: (userId: string, status: UserStatus) => Promise<void>;
+  updateUserRole: (userId: string, role: UserRole) => Promise<void>;
   deleteUser: (userId: string) => Promise<void>;
   isLoading: boolean;
 }
@@ -150,16 +151,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!password) return false;
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast.error(error.message);
+        setIsLoading(false);
         return false;
+      }
+      
+      if (data.user) {
+        await loadUserProfile(data.user.id);
       }
       return true;
     } catch (err) {
-      return false;
-    } finally {
       setIsLoading(false);
+      return false;
     }
   };
 
@@ -167,7 +172,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!password || !name) return;
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -175,9 +180,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       if (error) throw error;
+      
+      if (data.user && data.session) {
+        await loadUserProfile(data.user.id);
+      } else {
+        setIsLoading(false);
+      }
     } catch (err: any) {
       toast.error(err.message || 'Error signing up');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -225,6 +235,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserRole = async (userId: string, role: UserRole) => {
+    // Optimistic update
+    setUsers(prev => prev.map(u => (u.id === userId ? { ...u, role } : u)));
+    if (user?.id === userId) {
+      setUser(prev => (prev ? { ...prev, role } : null));
+    }
+
+    try {
+      const { error } = await supabase
+        .from('employee_profiles')
+        .update({ role })
+        .eq('id', userId);
+      
+      if (error) throw error;
+      toast.success(`User role updated to ${role}`);
+    } catch (err: any) {
+      toast.error('Failed to update user role');
+      // On error, re-fetch to fix state
+      fetchAdminData();
+    }
+  };
+
   const deleteUser = async (userId: string) => {
     // Optimistic update
     setUsers(prev => prev.filter(u => u.id !== userId));
@@ -255,6 +287,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout,
       toggleAutoApprove,
       updateUserStatus,
+      updateUserRole,
       deleteUser,
       isLoading
     }}>

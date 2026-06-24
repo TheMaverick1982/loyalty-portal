@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Mail, Lock, ArrowRight, Chrome } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function Login() {
@@ -20,13 +20,8 @@ export default function Login() {
     const success = await login(email, password);
     if (success) {
       toast.success('Successfully logged in');
-      navigate('/');
+      // Navigation is handled automatically by the PublicRoute guard when user state populates
     }
-  };
-
-  const handleGoogleLogin = () => {
-    // In a real app this would trigger Google OAuth
-    toast.info('Google login is simulated in this prototype. Please use email.');
   };
 
   return (
@@ -88,24 +83,6 @@ export default function Login() {
             <ArrowRight className="ml-2 h-4 w-4" />
           </button>
         </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleLogin}
-          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full"
-        >
-          <Chrome className="mr-2 h-4 w-4" />
-          Google
-        </button>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Don't have an account?{' '}
